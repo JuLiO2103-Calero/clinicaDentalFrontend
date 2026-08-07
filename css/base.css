@@ -1,0 +1,152 @@
+/* ============================================================
+   BASE.CSS — Reset, variables y tipografía
+   Clínica Dental — estilo minimalista funcional
+   ============================================================ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    /* Paleta */
+    --color-bg:          #f8f9fa;
+    --color-surface:     #ffffff;
+    --color-border:      #dee2e6;
+    --color-border-dark: #adb5bd;
+    --color-text:        #212529;
+    --color-text-muted:  #6c757d;
+    --color-primary:     #0d6efd;
+    --color-primary-dk:  #0a58ca;
+    --color-danger:      #dc3545;
+    --color-danger-dk:   #b02a37;
+    --color-success:     #198754;
+    --color-warning:     #ffc107;
+    --color-info:        #0dcaf0;
+
+    /* Espaciado */
+    --sp-1: 0.25rem;
+    --sp-2: 0.5rem;
+    --sp-3: 0.75rem;
+    --sp-4: 1rem;
+    --sp-5: 1.25rem;
+    --sp-6: 1.5rem;
+    --sp-8: 2rem;
+    --sp-10: 2.5rem;
+    --sp-12: 3rem;
+
+    /* Tipografía */
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --fs-xs:   0.75rem;
+    --fs-sm:   0.875rem;
+    --fs-base: 1rem;
+    --fs-lg:   1.125rem;
+    --fs-xl:   1.25rem;
+    --fs-2xl:  1.5rem;
+    --fs-3xl:  1.875rem;
+
+    /* Bordes */
+    --radius-sm: 4px;
+    --radius:    6px;
+    --radius-lg: 10px;
+
+    /* Sombras */
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+    --shadow:    0 2px 8px rgba(0,0,0,.10);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,.12);
+
+    /* Transición */
+    --transition: 150ms ease;
+}
+
+/* ===== TEMA OSCURO ===== */
+[data-theme="dark"] {
+    --color-bg:          #16181c;
+    --color-surface:     #1f2227;
+    --color-border:      #33373e;
+    --color-border-dark: #4a4f57;
+    --color-text:        #e4e6eb;
+    --color-text-muted:  #9aa0a8;
+    --color-primary:     #4d94ff;
+    --color-primary-dk:  #3b82f6;
+    --color-danger:      #f16c6c;
+    --color-danger-dk:   #e24b4a;
+    --color-success:     #3dd68c;
+    --color-warning:     #ffca3a;
+    --color-info:        #4dd4e8;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+    --shadow-md: 0 2px 10px rgba(0,0,0,.5);
+    --shadow-lg: 0 4px 20px rgba(0,0,0,.6);
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    color: var(--color-text);
+    background: var(--color-bg);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+ul, ol {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* Scrollbar minimalista */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-dark); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
+
+/* Utilidades de layout */
+.flex         { display: flex; }
+.flex-col     { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-2        { gap: var(--sp-2); }
+.gap-4        { gap: var(--sp-4); }
+.gap-6        { gap: var(--sp-6); }
+.w-full       { width: 100%; }
+.hidden       { display: none !important; }
+.text-center  { text-align: center; }
+.text-right   { text-align: right; }
+.text-muted   { color: var(--color-text-muted); }
+.text-danger  { color: var(--color-danger); }
+.text-success { color: var(--color-success); }
+.text-sm      { font-size: var(--fs-sm); }
+.text-xs      { font-size: var(--fs-xs); }
+.font-semibold { font-weight: 600; }
+.font-bold    { font-weight: 700; }
+.mt-2         { margin-top: var(--sp-2); }
+.mt-4         { margin-top: var(--sp-4); }
+.mt-6         { margin-top: var(--sp-6); }
+.mb-4         { margin-bottom: var(--sp-4); }
+.p-4          { padding: var(--sp-4); }
+.truncate     { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clínica Dental Shalom</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/components.css" />
+
+    <style>
+        /* Ocultar el layout de app mientras carga el router */
+        #app-shell { display: none; }
+        .menu-ajuste-item:hover { background: var(--color-bg); }
+    </style>
+    <script>
+        // Aplicar el tema guardado ANTES de renderizar, para evitar parpadeo
+        (function () {
+            var t = localStorage.getItem('tema');
+            document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light');
+        })();
+    </script>
+</head>
+<body>
+    <div id="app">
+
+        <!-- Vista pública (login) -->
+        <div id="public-view">
+            <div id="view"></div>
+        </div>
+
+        <!-- Layout de la app autenticada -->
+        <div id="app-shell" class="app-layout">
+
+            <!-- Navbar -->
+            <nav class="navbar">
+                <span class="navbar-brand">Clínica <span>Dental</span></span>
+                <div class="navbar-user">
+                    <div id="sucursal-selector-container"></div>
+                    <div>
+                        <div class="navbar-user-name" id="navbar-name">—</div>
+                        <div class="navbar-user-role" id="navbar-role">—</div>
+                    </div>
+                    <div style="position:relative">
+                        <button class="btn btn-ghost btn-sm" id="btn-ajustes" title="Ajustes" aria-haspopup="true">
+                            ⚙️
+                        </button>
+                        <div id="menu-ajustes" class="hidden" style="position:absolute;right:0;top:calc(100% + 6px);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow-lg);min-width:220px;z-index:1000;overflow:hidden">
+                            <div style="padding:var(--sp-2) var(--sp-3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--color-border)">
+                                <span style="font-size:var(--fs-sm)">🌙 Modo oscuro</span>
+                                <label class="switch" style="position:relative;display:inline-block;width:40px;height:22px">
+                                    <input type="checkbox" id="toggle-tema" style="opacity:0;width:0;height:0" />
+                                    <span id="switch-slider" style="position:absolute;cursor:pointer;inset:0;background:var(--color-border-dark);border-radius:22px;transition:var(--transition)"></span>
+                                </label>
+                            </div>
+                            <button class="menu-ajuste-item" id="btn-mi-password" style="width:100%;text-align:left;padding:var(--sp-2) var(--sp-3);background:none;border:none;cursor:pointer;font-size:var(--fs-sm);color:var(--color-text)">
+                                🔑 Cambiar contraseña
+                            </button>
+                            <button class="menu-ajuste-item" id="btn-mis-preguntas" style="width:100%;text-align:left;padding:var(--sp-2) var(--sp-3);background:none;border:none;cursor:pointer;font-size:var(--fs-sm);color:var(--color-text)">
+                                🛡️ Preguntas de seguridad
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" id="btn-logout" title="Cerrar sesión">
+                        ⏻ Salir
+                    </button>
+                </div>
+            </nav>
+
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-section">Principal</div>
+
+                <button class="sidebar-item" data-route="#/dashboard">
+                    <span class="sidebar-icon">▦</span> Dashboard
+                </button>
+                <button class="sidebar-item" data-route="#/citas">
+                    <span class="sidebar-icon">📅</span> Citas
+                </button>
+                <button class="sidebar-item" data-route="#/pacientes">
+                    <span class="sidebar-icon">👤</span> Pacientes
+                </button>
+                <button class="sidebar-item" data-route="#/consultas">
+                    <span class="sidebar-icon">🩺</span> Consultas
+                </button>
+
+                <div class="sidebar-section">Finanzas</div>
+
+                <button class="sidebar-item" data-route="#/pagos">
+                    <span class="sidebar-icon">💳</span> Pagos
+                </button>
+                <button class="sidebar-item" data-route="#/caja">
+                    <span class="sidebar-icon">🏧</span> Caja
+                </button>
+                <button class="sidebar-item" data-route="#/reportes">
+                    <span class="sidebar-icon">📊</span> Reportes
+                </button>
+
+                <div class="sidebar-section sidebar-admin-only" style="display:none">Administración</div>
+
+                <button class="sidebar-item sidebar-admin-only" data-route="#/usuarios" style="display:none">
+                    <span class="sidebar-icon">👥</span> Usuarios
+                </button>
+                <button class="sidebar-item sidebar-admin-only" data-route="#/auditoria" style="display:none">
+                    <span class="sidebar-icon">🔍</span> Auditoría
+                </button>
+            </aside>
+
+            <!-- Contenido principal -->
+            <main class="main-content">
+                <div id="view"></div>
+            </main>
+
+        </div><!-- /#app-shell -->
+
+    </div><!-- /#app -->
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+
+    <!-- Loader global -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Punto de entrada JS (módulos ES6) -->
+    <script type="module">
+        import State    from './js/core/state.js';
+        import Auth     from './js/core/auth.js';
+        import Router   from './js/core/router.js';
+        import UI       from './js/utils/ui.js';
+        import Sucursal from './js/core/sucursal.js';
+
+        // ---------- BOOTSTRAP ----------
+        function actualizarLayout() {
+            const autenticado   = Auth.isAuthenticated();
+            const publicView    = document.getElementById('public-view');
+            const appShell      = document.getElementById('app-shell');
+            const viewPublico   = document.querySelector('#public-view #view');
+            const viewApp       = document.querySelector('#app-shell #view');
+
+            if (autenticado) {
+                publicView.style.display  = 'none';
+                appShell.style.display    = 'grid';
+
+                // Poblar navbar con datos del usuario
+                const u = State.getUsuario();
+                document.getElementById('navbar-name').textContent = u?.nombreCompleto ?? u?.nombre ?? '—';
+                document.getElementById('navbar-role').textContent = u?.rol ?? '—';
+
+                // Solo Usuarios y Auditoría son exclusivos del admin
+                const esAdmin = u?.rol === 'administrador';
+                document.querySelectorAll('.sidebar-admin-only').forEach(el => {
+                    el.style.display = esAdmin ? '' : 'none';
+                });
+
+            } else {
+                publicView.style.display = 'block';
+                appShell.style.display   = 'none';
+            }
+        }
+
+        // El router necesita el #view correcto según el estado de auth.
+        // Sobrescribir mount para apuntar al contenedor correcto.
+        window.addEventListener('hashchange', () => {
+            actualizarLayout();
+            if (Auth.isAuthenticated()) Sucursal.inicializar();
+        });
+
+        // Menú de ajustes: abrir/cerrar
+        const btnAjustes = document.getElementById('btn-ajustes');
+        const menuAjustes = document.getElementById('menu-ajustes');
+        btnAjustes?.addEventListener('click', e => {
+            e.stopPropagation();
+            menuAjustes.classList.toggle('hidden');
+        });
+        // Cerrar el menú al hacer clic fuera
+        document.addEventListener('click', e => {
+            if (menuAjustes && !menuAjustes.classList.contains('hidden') &&
+                !menuAjustes.contains(e.target) && e.target !== btnAjustes) {
+                menuAjustes.classList.add('hidden');
+            }
+        });
+
+        // Tema oscuro/claro con persistencia
+        const toggleTema = document.getElementById('toggle-tema');
+        const slider = document.getElementById('switch-slider');
+        function aplicarTema(oscuro) {
+            document.documentElement.setAttribute('data-theme', oscuro ? 'dark' : 'light');
+            localStorage.setItem('tema', oscuro ? 'dark' : 'light');
+            if (toggleTema) toggleTema.checked = oscuro;
+            if (slider) {
+                slider.style.background = oscuro ? 'var(--color-primary)' : 'var(--color-border-dark)';
+                slider.innerHTML = `<span style="position:absolute;height:16px;width:16px;left:${oscuro ? '21px' : '3px'};top:3px;background:#fff;border-radius:50%;transition:var(--transition)"></span>`;
+            }
+        }
+        // Aplicar tema guardado al cargar
+        aplicarTema(localStorage.getItem('tema') === 'dark');
+        toggleTema?.addEventListener('change', () => aplicarTema(toggleTema.checked));
+
+        // Cambiar contraseña y preguntas (dentro del menú)
+        document.getElementById('btn-mi-password')?.addEventListener('click', () => {
+            menuAjustes.classList.add('hidden');
+            window.location.hash = '#/cambiar-password';
+        });
+        document.getElementById('btn-mis-preguntas')?.addEventListener('click', () => {
+            menuAjustes.classList.add('hidden');
+            window.location.hash = '#/preguntas-seguridad';
+        });
+        document.getElementById('btn-logout')?.addEventListener('click', () => {
+            UI.confirm(
+                '¿Cerrar sesión?',
+                () => Auth.logout(),
+                'Cerrar sesión'
+            );
+        });
+
+        // Sidebar: navegar al hacer clic
+        document.querySelectorAll('.sidebar-item[data-route]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.location.hash = btn.dataset.route;
+            });
+        });
+
+        // Actualizar layout antes de que el router monte la primera vista
+        actualizarLayout();
+
+        // Inicializar selector de sucursal (carga catálogo y monta en navbar)
+        if (Auth.isAuthenticated()) {
+            await Sucursal.inicializar();
+        }
+
+        // Iniciar el router
+        Router.init();
+    </script>
+    <!-- Librerías para exportar reportes a Excel y PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>
