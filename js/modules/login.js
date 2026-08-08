@@ -25,7 +25,7 @@ const LoginModule = {
                                     Nombre de usuario <span class="required">*</span>
                                 </label>
                                 <input type="text" id="login-usuario" class="form-control"
-                                    placeholder="jcastillo" autocomplete="username" autofocus />
+                                    placeholder="Tu usuario" autocomplete="username" autofocus />
                                 <span class="form-error" id="login-usuario-error"></span>
                             </div>
 

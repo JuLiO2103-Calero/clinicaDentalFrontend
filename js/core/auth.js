@@ -2,8 +2,8 @@
 // AUTH.JS — Login, logout, guard de rutas
 // ============================================================
 
-import Api    from './api.js';
-import State  from './state.js';
+import Api from './api.js';
+import State from './state.js';
 
 const Auth = {
     async login(nombreUsuario, password) {
