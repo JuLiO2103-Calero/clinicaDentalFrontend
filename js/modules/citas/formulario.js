@@ -6,18 +6,8 @@
 import Api from '../../core/api.js';
 import State from '../../core/state.js';
 import UI from '../../utils/ui.js';
-const SERVICIOS = [
-    { id: 1, nombre: 'Consulta general', precio: 300 },
-    { id: 2, nombre: 'Limpieza dental', precio: 600 },
-    { id: 3, nombre: 'Extracción simple', precio: 800 },
-    { id: 4, nombre: 'Extracción molar', precio: 1500 },
-    { id: 5, nombre: 'Resina / Empaste', precio: 900 },
-    { id: 6, nombre: 'Tratamiento de conducto', precio: 3500 },
-    { id: 7, nombre: 'Corona dental', precio: 5000 },
-    { id: 8, nombre: 'Blanqueamiento dental', precio: 2500 },
-    { id: 9, nombre: 'Ortodoncia mensualidad', precio: 1200 },
-    { id: 10, nombre: 'Radiografía panorámica', precio: 800 },
-];
+// Los servicios ahora vienen de la API (módulo de servicios editable por el admin)
+let _servicios = [];
 let _todosUsuarios = [];
 let _cita = null;
 // fechaInicial (opcional): "2026-08-08T10:00" para preseleccionar en el campo
@@ -25,11 +15,13 @@ export async function renderFormulario(container, citaId, fechaInicial = null) {
     const esEdicion = citaId !== null;
     _cita = null;
     UI.showLoader();
-    const [resU, resSuc] = await Promise.all([
+    const [resU, resSuc, resServ] = await Promise.all([
         Api.get('/api/usuarios/personal'),
-        Api.get('/api/sucursales')
+        Api.get('/api/sucursales'),
+        Api.get('/api/servicios')   // solo activos por defecto
     ]);
     _todosUsuarios = resU.ok ? resU.datos : [];
+    _servicios = resServ.ok ? resServ.datos : [];
     const sucursales = resSuc.ok ? resSuc.datos : [];
     if (esEdicion) {
         const res = await Api.get(`/api/citas/${citaId}`);
@@ -41,8 +33,8 @@ export async function renderFormulario(container, citaId, fechaInicial = null) {
     const sucDefault = _cita?.sucursalId ?? miSucursal;
     const opsSuc = sucursales.map(s =>
         `<option value="${s.id}" ${s.id === sucDefault ? 'selected' : ''}>${s.nombre}</option>`).join('');
-    const opsServ = `<option value="">Sin servicio</option>` + SERVICIOS.map(s =>
-        `<option value="${s.id}" ${_cita?.servicioId === s.id ? 'selected' : ''}>${s.nombre} (${UI.moneda(s.precio)})</option>`).join('');
+    const opsServ = `<option value="">Sin servicio</option>` + _servicios.map(s =>
+        `<option value="${s.id}" ${_cita?.servicioId === s.id ? 'selected' : ''}>${s.nombre} (${UI.moneda(s.precioBase)})</option>`).join('');
     // Valor de fecha/hora: si es edición usa la de la cita; si viene fechaInicial
     // (desde el calendario) la usa; si no, vacío.
     let fechaVal = '';

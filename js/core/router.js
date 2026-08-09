@@ -15,6 +15,7 @@ import CajaModule       from '../modules/caja/index.js';
 import UsuariosModule   from '../modules/usuarios/index.js';
 import ReportesModule   from '../modules/reportes/index.js';
 import AuditoriaModule  from '../modules/auditoria/index.js';
+import ServiciosModule  from '../modules/servicios/index.js';
 import CambiarPasswordModule from '../modules/cambiar-password/index.js';
 import PreguntasSeguridadModule from '../modules/preguntas-seguridad/index.js';
 
@@ -29,6 +30,7 @@ const ROUTES = [
     { prefix: '#/reportes',  module: ReportesModule,   roles: null },
     { prefix: '#/usuarios',  module: UsuariosModule,   roles: ['administrador'] },
     { prefix: '#/auditoria', module: AuditoriaModule,  roles: ['administrador'] },
+    { prefix: '#/servicios', module: ServiciosModule,  roles: ['administrador'] },
     { prefix: '#/cambiar-password', module: CambiarPasswordModule, roles: null },
     { prefix: '#/preguntas-seguridad', module: PreguntasSeguridadModule, roles: null },
 ];
