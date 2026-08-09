@@ -7,8 +7,8 @@
 
 import State from './state.js';
 
-const BASE_URL = 'https://localhost:7080';
-//const BASE_URL = 'https://clinicadentalapi20260807141159-eyepevgxhgb5fhhs.centralus-01.azurewebsites.net';
+//const BASE_URL = 'https://localhost:7080';
+const BASE_URL = 'https://clinicadentalapi20260807141159-eyepevgxhgb5fhhs.centralus-01.azurewebsites.net';
 
 async function request(method, path, body = null) {
     const token = State.getToken();
