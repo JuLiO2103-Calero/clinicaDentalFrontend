@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/responsive.css" />
 
     <style>
         /* Ocultar el layout de app mientras carga el router */
@@ -139,6 +140,7 @@
         import Router   from './js/core/router.js';
         import UI       from './js/utils/ui.js';
         import Sucursal from './js/core/sucursal.js';
+        import Mobile   from './js/core/mobile.js';
 
         // ---------- BOOTSTRAP ----------
         function actualizarLayout() {
@@ -173,7 +175,7 @@
         // Sobrescribir mount para apuntar al contenedor correcto.
         window.addEventListener('hashchange', () => {
             actualizarLayout();
-            if (Auth.isAuthenticated()) Sucursal.inicializar();
+            if (Auth.isAuthenticated()) { Sucursal.inicializar(); Mobile.init(); }
         });
 
         // Menú de ajustes: abrir/cerrar
@@ -237,50 +239,8 @@
         // Inicializar selector de sucursal (carga catálogo y monta en navbar)
         if (Auth.isAuthenticated()) {
             await Sucursal.inicializar();
+            Mobile.init();   // menú hamburguesa + tablas responsive
         }
-
-        // ---------- MENÚ HAMBURGUESA (móvil) ----------
-        const sidebarEl   = document.getElementById('sidebar');
-        const backdropEl  = document.getElementById('sidebar-backdrop');
-        const hamburgerEl = document.getElementById('btn-hamburger');
-
-        function abrirMenu()  { sidebarEl?.classList.add('sidebar-open'); backdropEl?.classList.add('show'); }
-        function cerrarMenu() { sidebarEl?.classList.remove('sidebar-open'); backdropEl?.classList.remove('show'); }
-
-        hamburgerEl?.addEventListener('click', () => {
-            sidebarEl?.classList.contains('sidebar-open') ? cerrarMenu() : abrirMenu();
-        });
-        backdropEl?.addEventListener('click', cerrarMenu);
-        // Al elegir una opción del menú, cerrarlo (en móvil)
-        document.querySelectorAll('.sidebar-item[data-route]').forEach(btn => {
-            btn.addEventListener('click', cerrarMenu);
-        });
-
-        // ---------- TABLAS → TARJETAS (móvil) ----------
-        // Recorre las tablas y pone en cada celda el nombre de su columna
-        // (data-label), para que el CSS las muestre como tarjetas en móvil.
-        function adaptarTablas() {
-            document.querySelectorAll('.table').forEach(tabla => {
-                // Marcar la tabla para el modo tarjetas
-                tabla.classList.add('table-responsive-cards');
-                const encabezados = [...tabla.querySelectorAll('thead th')].map(th => th.textContent.trim());
-                if (!encabezados.length) return;
-                tabla.querySelectorAll('tbody tr').forEach(tr => {
-                    [...tr.children].forEach((td, i) => {
-                        if (!td.hasAttribute('data-label')) {
-                            td.setAttribute('data-label', encabezados[i] ?? '');
-                        }
-                    });
-                });
-            });
-        }
-        // Observar cambios en el contenedor de vistas para adaptar tablas nuevas
-        const viewContainer = document.getElementById('app-shell');
-        if (viewContainer && 'MutationObserver' in window) {
-            const obs = new MutationObserver(() => adaptarTablas());
-            obs.observe(viewContainer, { childList: true, subtree: true });
-        }
-        adaptarTablas();
 
         // Iniciar el router
         Router.init();

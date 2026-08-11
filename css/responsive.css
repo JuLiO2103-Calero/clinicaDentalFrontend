@@ -1,0 +1,203 @@
+/* ============================================================
+   responsive.css — Adaptación a tablet y celular
+   Responsabilidad única: toda la responsividad del sistema.
+   Se carga después de components.css para poder sobrescribir.
+   ============================================================ */
+
+/* Botón hamburguesa: oculto en escritorio, visible en móvil */
+.btn-hamburger {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-text);
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    padding: 0;
+}
+.btn-hamburger:hover { background: var(--color-bg); }
+
+/* Fondo oscuro del menú móvil (oculto por defecto) */
+.sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 56px 0 0 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 150;
+}
+
+/* ===================================================== */
+/* TABLET (hasta 1024px)                                 */
+/* ===================================================== */
+@media (max-width: 1024px) {
+    .app-layout { grid-template-columns: 190px 1fr; }
+    .main-content { padding: var(--sp-4); }
+    .grid-2, .grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ===================================================== */
+/* CELULAR (hasta 768px)                                 */
+/* ===================================================== */
+@media (max-width: 768px) {
+
+    /* ---- Layout general ---- */
+    .app-layout {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: 56px 1fr;
+    }
+    .main-content {
+        padding: var(--sp-3);
+        overflow-x: hidden;          /* nada se desborda a los lados */
+    }
+
+    /* ---- Navbar ---- */
+    .navbar { padding: 0 var(--sp-2); gap: var(--sp-2); }
+    .btn-hamburger { display: flex; }
+    .navbar-brand { font-size: var(--fs-base); }
+    /* El bloque de usuario se compacta */
+    .navbar-user { gap: var(--sp-2); }
+
+    /* ---- Sidebar deslizable ---- */
+    .sidebar {
+        position: fixed;
+        top: 56px;
+        left: 0;
+        bottom: 0;
+        width: 260px;
+        max-width: 82vw;
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.18);
+        overflow-y: auto;
+        display: block;
+    }
+    .sidebar.sidebar-open { transform: translateX(0); }
+    .sidebar-backdrop.show { display: block; }
+
+    /* ---- Encabezados de página ---- */
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--sp-2);
+    }
+    .page-title { font-size: var(--fs-xl); }
+    .page-header .btn { width: 100%; }
+
+    /* ---- Formularios: todo a una columna ---- */
+    .form-row, .form-row-3 { grid-template-columns: 1fr !important; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+
+    /* Neutralizar anchos fijos inline de inputs/selects/form-groups.
+       Muchos módulos usan style="width:160px" o min-width grandes;
+       en móvil los forzamos a ancho completo para que no desborden. */
+    .main-content .form-group,
+    .main-content .form-control,
+    .main-content select.form-control,
+    .main-content input.form-control {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    /* Contenedores flex de filtros: que envuelvan en vez de desbordar */
+    .card-body > div[style*="display:flex"],
+    .card-body > div[style*="display: flex"] {
+        flex-wrap: wrap !important;
+    }
+
+    /* Grids inline de 2 columnas (ej. dashboard 1fr 300px) a una sola */
+    div[style*="grid-template-columns:1fr 300px"],
+    div[style*="grid-template-columns: 1fr 300px"],
+    div[style*="grid-template-columns:1fr 1fr"],
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* ---- Stats: 2 columnas ---- */
+    .stats-grid { grid-template-columns: 1fr 1fr !important; gap: var(--sp-2); }
+    .caja-cards { flex-direction: column; }
+    .caja-cards .caja-card { width: 100%; min-width: 0 !important; }
+
+    /* ---- TABLAS → TARJETAS APILADAS ---- */
+    /* La clase table-responsive-cards la agrega mobile.js */
+    .table-responsive-cards { min-width: 0 !important; }
+    .table-responsive-cards thead { display: none; }
+    .table-responsive-cards,
+    .table-responsive-cards tbody,
+    .table-responsive-cards tr,
+    .table-responsive-cards td {
+        display: block;
+        width: 100%;
+    }
+    .table-responsive-cards tr {
+        margin-bottom: var(--sp-3);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: var(--sp-1) var(--sp-3);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-sm);
+    }
+    .table-responsive-cards td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--sp-3);
+        padding: var(--sp-2) 0;
+        border: none;
+        border-bottom: 1px solid var(--color-border);
+        text-align: right;
+        white-space: normal;
+    }
+    .table-responsive-cards td:last-child { border-bottom: none; }
+    .table-responsive-cards td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--color-text-muted);
+        text-align: left;
+        flex-shrink: 0;
+        font-size: var(--fs-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+    /* Celda de acciones (sin etiqueta): sin prefijo, centrada */
+    .table-responsive-cards td[data-label=""]::before { content: ""; }
+    .table-responsive-cards td[data-label=""] { justify-content: flex-end; }
+
+    /* El wrapper de tabla ya no necesita scroll horizontal */
+    .table-wrapper { overflow-x: visible; }
+
+    /* ---- Modales casi a pantalla completa ---- */
+    .modal {
+        max-width: 94vw !important;
+        width: 94vw !important;
+        max-height: 88vh;
+        overflow-y: auto;
+        margin: var(--sp-3) auto;
+    }
+
+    /* ---- Botones más cómodos para tocar ---- */
+    .btn { min-height: 40px; }
+    .btn-sm { min-height: 34px; }
+
+    /* Búsquedas a ancho completo */
+    .search-input-wrapper { width: 100% !important; }
+}
+
+/* ===================================================== */
+/* CELULAR PEQUEÑO (hasta 480px)                         */
+/* ===================================================== */
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr !important; }
+    .navbar-user-role { display: none; }
+    .navbar-user-name { font-size: var(--fs-xs); }
+    .main-content { padding: var(--sp-2); }
+    .card-body { padding: var(--sp-3); }
+}
