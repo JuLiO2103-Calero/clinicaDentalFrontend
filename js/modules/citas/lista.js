@@ -24,6 +24,11 @@ export async function renderLista(container) {
     }
     const doctores = _usuarios.filter(u => u.rol === 'doctor' && u.activo);
     const opsDocs  = doctores.map(d => `<option value="${d.id}">${d.nombreCompleto}</option>`).join('');
+    // Filtro de sucursal: todos los usuarios pueden ver cualquier sucursal.
+    // Por defecto la del usuario; con opción "Todas".
+    const miSuc    = State.getUsuario()?.sucursalId ?? null;
+    const opsSuc   = Sucursal.getSucursales().map(s =>
+        `<option value="${s.id}" ${s.id === miSuc ? 'selected' : ''}>${s.nombre}</option>`).join('');
 
     container.innerHTML = `
         <div class="page-header">
@@ -77,6 +82,13 @@ export async function renderLista(container) {
                             <option value="completada">Completada</option>
                             <option value="cancelada">Cancelada</option>
                             <option value="no_asistio">No asistió</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="min-width:150px">
+                        <label class="form-label" style="font-size:var(--fs-xs)">Sucursal</label>
+                        <select class="form-control" id="f-sucursal">
+                            <option value="">Todas</option>
+                            ${opsSuc}
                         </select>
                     </div>
                     <button class="btn btn-primary btn-sm" id="btn-filtrar" style="height:36px">
@@ -156,8 +168,8 @@ export async function renderLista(container) {
     document.getElementById('btn-cancel-estado').addEventListener('click', () => UI.closeModal('modal-estado'));
     document.getElementById('btn-save-estado').addEventListener('click', guardarEstado);
 
-    // Escuchar cambio de sucursal del admin
-    window.addEventListener('sucursal-changed', () => {
+    // Al cambiar la sucursal del filtro propio, re-aplicar la búsqueda activa
+    document.getElementById('f-sucursal')?.addEventListener('change', () => {
         const pillActivo = document.querySelector('.filtro-rapido[style*="var(--color-primary)"]');
         if (pillActivo) {
             aplicarFiltroRapido(pillActivo.dataset.filtro);
@@ -193,7 +205,7 @@ async function buscarPorTexto() {
         return;
     }
 
-    const suc = Sucursal.getSucursalFiltro();
+    const _s = document.getElementById('f-sucursal')?.value; const suc = _s ? parseInt(_s) : null;
     const ids = new Set(resPac.datos.map(p => p.id));
 
     if (resPac.datos.length === 1) {
@@ -219,7 +231,7 @@ function filtrarPorCampos() {
     const fin    = document.getElementById('f-fin')?.value    || null;
     const doctor = document.getElementById('f-doctor')?.value || null;
     const estado = document.getElementById('f-estado')?.value || null;
-    const suc    = Sucursal.getSucursalFiltro();
+    const _s2 = document.getElementById('f-sucursal')?.value; const suc = _s2 ? parseInt(_s2) : null;
 
     // Limpiar texto para que no interfiera
     document.getElementById('f-texto').value = '';
@@ -279,7 +291,7 @@ function aplicarFiltroRapido(tipo) {
         estado:      f.estado,
         fechaInicio: f.inicio,
         fechaFin:    f.fin,
-        sucursalId:  Sucursal.getSucursalFiltro()
+        sucursalId:  (document.getElementById('f-sucursal')?.value ? parseInt(document.getElementById('f-sucursal').value) : null)
     });
 }
 

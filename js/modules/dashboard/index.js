@@ -16,9 +16,9 @@ const state = {
     fecha:   new Date().toISOString().split('T')[0],
     periodo: 'dia',
     citas:   [],
+    sucursalId: null,   // filtro de sucursal propio del dashboard
 };
 let _refreshInterval = null;
-let _onSucursalChange = null;
 const DashboardModule = {
     render(container) {
         const usuario = State.getUsuario();
@@ -28,6 +28,7 @@ const DashboardModule = {
         const hoy     = new Date().toISOString().split('T')[0];
         state.fecha   = hoy;
         state.periodo = 'dia';
+        state.sucursalId = usuario?.sucursalId ?? null;
         state.citas   = [];
         container.innerHTML = `
             <div class="page-header">
@@ -66,16 +67,14 @@ const DashboardModule = {
         this.cargarDatos();
         // Auto-refresh
         _refreshInterval = setInterval(() => this.cargarDatos(), 120_000);
-        // Escuchar cambio de sucursal
-        _onSucursalChange = () => this.cargarDatos();
-        window.addEventListener('sucursal-changed', _onSucursalChange);
     },
     async cargarDatos() {
         const rango      = calcularRango(state);
-        const sucursalId = Sucursal.getSucursalFiltro();
+        const sucursalId = state.sucursalId;   // filtro propio del dashboard
         document.getElementById('desc-periodo').textContent = rango.desc;
-        document.getElementById('label-sucursal-dash').textContent =
-            `📍 ${Sucursal.getSucursalNombre()}`;
+        const nombreSuc = Sucursal.getSucursales().find(s => s.id === state.sucursalId)?.nombre
+            ?? 'Sin sucursal';
+        document.getElementById('label-sucursal-dash').textContent = `📍 ${nombreSuc}`;
         const url = Api.buildUrl('/api/citas', {
             fechaInicio: rango.inicio,
             fechaFin:    rango.fin,
@@ -90,7 +89,6 @@ const DashboardModule = {
     },
     destroy() {
         if (_refreshInterval) { clearInterval(_refreshInterval); _refreshInterval = null; }
-        if (_onSucursalChange) { window.removeEventListener('sucursal-changed', _onSucursalChange); _onSucursalChange = null; }
     }
 };
 export default DashboardModule;

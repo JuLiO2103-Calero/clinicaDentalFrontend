@@ -104,7 +104,7 @@ async function cargarCierres(container, suc, inicio, fin) {
             <th>Fecha</th><th>Sucursal</th><th>Neto</th><th>Efectivo</th>
             <th>Diferencia</th><th>Citas</th><th>Pagos</th><th>Estado</th><th>Realizado por</th>
         </tr></thead><tbody>${cierres.map(c => `<tr>
-            <td style="white-space:nowrap">${UI.fechaHora(c.fechaCierre)}</td>
+            <td style="white-space:nowrap">${UI.fechaHora(c.creadoEn ?? c.fechaCierre)}</td>
             <td>${c.sucursal}</td>
             <td class="font-semibold">${UI.moneda(c.totalNeto)}</td>
             <td>${c.efectivoDeclarado != null ? UI.moneda(c.efectivoDeclarado) : '—'}</td>
@@ -146,7 +146,7 @@ async function cargarAperturas(container, suc, inicio, fin) {
             id: c.aperturaId,
             sucursal: c.sucursal,
             abiertoPorNombre: c.realizadoPor,
-            fechaApertura: c.fechaCierre,
+            fechaApertura: c.creadoEn ?? c.fechaCierre,
             montoInicial: null,
             saldoActual: c.totalNeto,
             estadoLabel: 'cerrada',
@@ -177,7 +177,7 @@ async function cargarAperturas(container, suc, inicio, fin) {
         </tr>`).join('')}
         ${cierres.map(c => `<tr style="opacity:0.7">
             <td>#${c.aperturaId ?? '—'}</td><td>${c.sucursal}</td><td>${c.realizadoPor}</td>
-            <td>${UI.fechaHora(c.fechaCierre)}</td>
+            <td>${UI.fechaHora(c.creadoEn ?? c.fechaCierre)}</td>
             <td>—</td>
             <td>${UI.moneda(c.totalNeto)}</td>
             <td class="text-center">${c.numPagosRegistrados}</td>

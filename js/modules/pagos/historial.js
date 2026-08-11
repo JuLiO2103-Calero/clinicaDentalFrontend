@@ -2,7 +2,6 @@
 
 import Api      from '../../core/api.js';
 import State    from '../../core/state.js';
-import Sucursal from '../../core/sucursal.js';
 import UI       from '../../utils/ui.js';
 
 // ¿La fecha del pago es hoy? (zona horaria Managua)
@@ -15,7 +14,8 @@ function esHoy(fechaPago) {
 export async function cargarHistorial(onRefresh) {
     const inicio = document.getElementById('pg-ini')?.value || null;
     const fin    = document.getElementById('pg-fin')?.value || null;
-    const suc    = Sucursal.getSucursalFiltro();
+    // Operativo: el historial de pagos es de la sucursal del usuario, no del filtro global
+    const suc    = State.getUsuario()?.sucursalId ?? null;
     const rol    = State.getUsuario()?.rol;
 
     if (!inicio || !fin) { UI.toast('Selecciona el rango de fechas', 'warning'); return; }

@@ -1,8 +1,33 @@
 // ============================================================
-// dashboard/filters.js — Filtros de periodo y fecha
+// dashboard/filters.js — Filtros de periodo, fecha y sucursal
 // ============================================================
 
+import State from '../../core/state.js';
+import Sucursal from '../../core/sucursal.js';
+
 export function crearFiltrosHTML(hoy) {
+    const usuario = State.getUsuario();
+    const esAdmin = usuario?.rol === 'administrador';
+    const sucursales = Sucursal.getSucursales();
+    const miSuc = usuario?.sucursalId;
+
+    // Filtro de sucursal propio del dashboard:
+    // - Admin: dropdown con todas las sucursales (por defecto la suya).
+    // - Otros: su sucursal fija como texto.
+    let filtroSucursal = '';
+    if (esAdmin && sucursales.length) {
+        const ops = sucursales.map(s =>
+            `<option value="${s.id}" ${s.id === miSuc ? 'selected' : ''}>${s.nombre}</option>`).join('');
+        filtroSucursal = `
+            <div style="display:flex;align-items:center;gap:var(--sp-2)">
+                <span class="text-sm text-muted">Sucursal:</span>
+                <select class="form-control" id="dash-sucursal"
+                    style="width:auto;padding:var(--sp-1) var(--sp-2);font-size:var(--fs-sm)">
+                    ${ops}
+                </select>
+            </div>`;
+    }
+
     return `
         <div class="card mb-4">
             <div class="card-body" style="padding:var(--sp-3) var(--sp-4)">
@@ -19,6 +44,7 @@ export function crearFiltrosHTML(hoy) {
                         <button class="btn btn-ghost btn-sm" id="btn-fecha-next" title="Siguiente">▶</button>
                     </div>
                     <button class="btn btn-ghost btn-sm" id="btn-hoy" style="font-weight:500">Hoy</button>
+                    ${filtroSucursal}
                     <span class="text-sm text-muted" id="label-sucursal-dash" style="margin-left:auto"></span>
                     <button class="btn btn-ghost btn-sm" id="btn-refresh-dash">↻</button>
                 </div>
@@ -69,6 +95,17 @@ export function bindFiltros(container, state, onCambio) {
     });
 
     document.getElementById('btn-refresh-dash')?.addEventListener('click', onCambio);
+
+    // Filtro de sucursal propio del dashboard (solo admin tiene el dropdown)
+    const selSuc = document.getElementById('dash-sucursal');
+    if (selSuc) {
+        // Inicializar el estado con la sucursal por defecto
+        state.sucursalId = parseInt(selSuc.value);
+        selSuc.addEventListener('change', () => {
+            state.sucursalId = selSuc.value ? parseInt(selSuc.value) : null;
+            onCambio();
+        });
+    }
 }
 
 function moverFecha(state, dir) {

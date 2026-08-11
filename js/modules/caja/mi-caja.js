@@ -21,15 +21,30 @@ export function htmlMiCaja(c) {
                     <button class="btn btn-danger btn-sm" id="btn-cerrar">Cerrar mi caja</button>
                 </div>
                 <div id="form-mov" class="hidden mt-4" style="padding:var(--sp-3);background:var(--color-bg);border-radius:var(--radius)">
-                    <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:flex-end">
+                    <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:flex-end;margin-bottom:var(--sp-3)">
                         <div class="form-group"><label class="form-label">Tipo</label>
                             <select class="form-control" id="mov-tipo"><option value="ingreso">Ingreso</option><option value="egreso">Egreso</option></select></div>
                         <div class="form-group" style="flex:1;min-width:140px"><label class="form-label">Concepto</label>
                             <input type="text" class="form-control" id="mov-concepto" /></div>
-                        <div class="form-group" style="width:120px"><label class="form-label">Monto</label>
-                            <input type="number" class="form-control" id="mov-monto" min="0.01" step="0.01" /></div>
+                        <div class="form-group"><label class="form-label">Método de pago</label>
+                            <select class="form-control" id="mov-metodo"><option value="">Efectivo</option></select></div>
+                    </div>
+                    <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:flex-end">
+                        <div class="form-group"><label class="form-label">Moneda</label>
+                            <select class="form-control" id="mov-moneda">
+                                <option value="NIO">Solo córdobas (C$)</option>
+                                <option value="USD">Solo dólares ($)</option>
+                                <option value="mixto">Mixto (C$ y $)</option>
+                            </select></div>
+                        <div class="form-group" id="mov-g-nio" style="width:150px"><label class="form-label">Monto C$</label>
+                            <input type="number" class="form-control" id="mov-monto-nio" min="0" step="0.01" value="0" /></div>
+                        <div class="form-group hidden" id="mov-g-usd" style="width:150px"><label class="form-label">Monto $</label>
+                            <input type="number" class="form-control" id="mov-monto-usd" min="0" step="0.01" value="0" /></div>
+                        <div class="form-group"><label class="form-label">Total (C$)</label>
+                            <div class="font-semibold" id="mov-total" style="padding:8px 0;color:var(--color-primary)">C$0.00</div></div>
                         <button class="btn btn-primary btn-sm" id="btn-save-mov" style="height:36px">Registrar</button>
                     </div>
+                    <p class="text-xs text-muted mt-2" id="mov-tasa-info"></p>
                 </div>
                 ${c.movimientos.length ? `
                 <div class="table-wrapper mt-4"><table class="table"><thead><tr>
@@ -60,7 +75,13 @@ export function htmlMiCaja(c) {
 
 export function bindMiCajaEvents(onRefresh) {
     document.getElementById('btn-mov')?.addEventListener('click', () => {
-        document.getElementById('form-mov')?.classList.toggle('hidden');
+        const form = document.getElementById('form-mov');
+        form?.classList.toggle('hidden');
+        // Cargar métodos de pago y tasa la primera vez que se abre
+        if (form && !form.classList.contains('hidden') && !form.dataset.cargado) {
+            form.dataset.cargado = '1';
+            cargarMovCatalogos();
+        }
     });
 
     // Modal detalle movimiento
@@ -71,28 +92,128 @@ export function bindMiCajaEvents(onRefresh) {
         row.addEventListener('mouseleave', () => row.style.background = '');
         row.addEventListener('click', () => {
             const m = JSON.parse(row.dataset.mov);
-            const fila = (l, v) => `<div style="display:flex;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border);font-size:var(--fs-sm)"><span class="text-muted" style="min-width:130px">${l}</span><span>${v}</span></div>`;
-            document.getElementById('mov-det-body').innerHTML = `
+            const fila = (l, v) => `<div style="display:flex;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px solid var(--color-border);font-size:var(--fs-sm)"><span class="text-muted" style="min-width:150px">${l}</span><span>${v}</span></div>`;
+            const money = v => UI.moneda(v ?? 0);
+
+            // Sección base (siempre)
+            let html = `
                 ${fila('Fecha', UI.fechaHora(m.fecha))}
                 ${fila('Tipo', UI.badge(m.tipo))}
+                ${m.sucursal ? fila('Sucursal', m.sucursal) : ''}
                 ${fila('Método de pago', m.metodoPago ?? 'Movimiento manual')}
-                ${fila('Concepto', m.concepto)}
-                ${fila('Monto', `<strong style="color:${m.tipo === 'ingreso' ? 'var(--color-success)' : 'var(--color-danger)'}">
-                    ${m.tipo === 'ingreso' ? '+' : '−'}${UI.moneda(m.monto)}</strong>`)}
-                ${fila('Usuario', m.usuario)}
-                ${m.pagoId ? fila('Pago #', m.pagoId) : ''}`;
+                ${fila('Concepto', m.concepto)}`;
+
+            // Detalle económico del pago (solo si el movimiento viene de un pago)
+            if (m.pagoId) {
+                html += `
+                <div style="margin-top:var(--sp-3);padding-top:var(--sp-2);border-top:2px solid var(--color-border)">
+                    <div class="text-muted text-xs" style="margin-bottom:var(--sp-1);font-weight:600">DETALLE DEL PAGO</div>
+                </div>
+                ${m.pagoMonto != null ? fila('Costo del servicio', money(m.pagoMonto)) : ''}
+                ${m.pagoDescuento != null && m.pagoDescuento > 0 ? fila('Descuento', `− ${money(m.pagoDescuento)}`) : ''}
+                ${m.pagoTotalCobrado != null ? fila('Total a cobrar', `<strong>${money(m.pagoTotalCobrado)}</strong>`) : ''}`;
+
+                // Desglose por moneda si aplica
+                if (m.montoCordobas != null && m.montoCordobas > 0)
+                    html += fila('Recibido en córdobas', money(m.montoCordobas));
+                if (m.montoDolares != null && m.montoDolares > 0)
+                    html += fila('Recibido en dólares', `$${m.montoDolares.toFixed(2)}`);
+                if (m.efectivoRecibido != null && m.efectivoRecibido > 0)
+                    html += fila('Efectivo recibido (C$)', money(m.efectivoRecibido));
+                if (m.cambioDevuelto != null && m.cambioDevuelto > 0) {
+                    const monVuelto = m.monedaCambio === 'USD' ? `$${m.cambioDevuelto.toFixed(2)}` : money(m.cambioDevuelto);
+                    html += fila('Vuelto entregado', `${monVuelto} ${m.monedaCambio ? '(' + m.monedaCambio + ')' : ''}`);
+                }
+            }
+
+            // Monto que entró/salió de la caja (siempre, resaltado)
+            html += fila('Monto en caja', `<strong style="color:${m.tipo === 'ingreso' ? 'var(--color-success)' : 'var(--color-danger)'}">
+                ${m.tipo === 'ingreso' ? '+' : '−'}${UI.moneda(m.monto)}</strong>`);
+            html += fila('Usuario', m.usuario);
+            if (m.pagoId) html += fila('Pago #', m.pagoId);
+
+            document.getElementById('mov-det-body').innerHTML = html;
             UI.openModal('modal-mov-detalle');
         });
     });
 
+    // ---- Movimiento manual con monedas ----
+    // Cargar métodos de pago y tasa al abrir el formulario
+    let _movTasa = null;
+    const cargarMovCatalogos = async () => {
+        const [rMet, rTasa] = await Promise.all([
+            Api.get('/api/pagos/metodos').catch(() => ({ ok: false })),
+            Api.get('/api/tasas-cambio/activa').catch(() => ({ ok: false }))
+        ]);
+        _movTasa = rTasa.ok ? rTasa.datos : null;
+        const selMet = document.getElementById('mov-metodo');
+        if (selMet && rMet.ok && rMet.datos) {
+            selMet.innerHTML = rMet.datos.map(m =>
+                `<option value="${m.id}">${m.nombre}</option>`).join('');
+        }
+        actualizarMovTotal();
+    };
+
+    const tasaCompra = () => _movTasa?.tasaCompra ?? 36.50;
+
+    const actualizarMovTotal = () => {
+        const moneda = document.getElementById('mov-moneda')?.value ?? 'NIO';
+        const nio = parseFloat(document.getElementById('mov-monto-nio')?.value) || 0;
+        const usd = parseFloat(document.getElementById('mov-monto-usd')?.value) || 0;
+        // Total en córdobas: NIO directo + USD convertido a la tasa de compra
+        const totalNIO = nio + (usd * tasaCompra());
+        const totalEl = document.getElementById('mov-total');
+        if (totalEl) totalEl.textContent = UI.moneda(totalNIO);
+        const info = document.getElementById('mov-tasa-info');
+        if (info) info.textContent = (moneda !== 'NIO')
+            ? `Tasa aplicada: C$${tasaCompra().toFixed(2)} por $1`
+            : '';
+    };
+
+    // Mostrar/ocultar campos según la moneda elegida
+    document.getElementById('mov-moneda')?.addEventListener('change', e => {
+        const t = e.target.value;
+        document.getElementById('mov-g-nio')?.classList.toggle('hidden', t === 'USD');
+        document.getElementById('mov-g-usd')?.classList.toggle('hidden', t === 'NIO');
+        actualizarMovTotal();
+    });
+    document.getElementById('mov-monto-nio')?.addEventListener('input', actualizarMovTotal);
+    document.getElementById('mov-monto-usd')?.addEventListener('input', actualizarMovTotal);
+
     document.getElementById('btn-save-mov')?.addEventListener('click', async () => {
         const concepto = document.getElementById('mov-concepto').value.trim();
-        const monto = parseFloat(document.getElementById('mov-monto').value);
-        if (!concepto || !monto) { UI.toast('Concepto y monto obligatorios', 'warning'); return; }
+        const tipo     = document.getElementById('mov-tipo').value;
+        const moneda   = document.getElementById('mov-moneda').value;
+        const metodoId = document.getElementById('mov-metodo').value || null;
+        const nio = parseFloat(document.getElementById('mov-monto-nio').value) || 0;
+        const usd = parseFloat(document.getElementById('mov-monto-usd').value) || 0;
+
+        if (!concepto) { UI.toast('El concepto es obligatorio', 'warning'); return; }
+
+        // Determinar montos por moneda según la selección
+        let montoCordobas = 0, montoDolares = 0;
+        if (moneda === 'NIO')      { montoCordobas = nio; montoDolares = 0; }
+        else if (moneda === 'USD') { montoCordobas = 0;   montoDolares = usd; }
+        else                       { montoCordobas = nio; montoDolares = usd; } // mixto
+
+        if (montoCordobas <= 0 && montoDolares <= 0) {
+            UI.toast('Ingresá al menos un monto mayor que cero', 'warning'); return;
+        }
+
+        // Monto total en córdobas (para el saldo de caja)
+        const tasa = tasaCompra();
+        const montoTotalNIO = montoCordobas + (montoDolares * tasa);
+
         UI.showLoader();
         const r = await Api.post('/api/caja/movimiento', {
-            sucursalId: Sucursal.getSucursalFiltro(),
-            tipo: document.getElementById('mov-tipo').value, concepto, monto
+            tipo,
+            concepto,
+            monto: montoTotalNIO,                    // total en C$ (afecta el saldo)
+            metodoPagoId: metodoId ? parseInt(metodoId) : null,
+            monedaPrincipal: moneda === 'mixto' ? 'NIO' : moneda,
+            montoCordobas: montoCordobas > 0 ? montoCordobas : null,
+            montoDolares:  montoDolares  > 0 ? montoDolares  : null,
+            tasaCambioAplicada: montoDolares > 0 ? tasa : null
         });
         UI.hideLoader();
         if (!r.ok) { UI.toast(r.mensaje, 'error'); return; }

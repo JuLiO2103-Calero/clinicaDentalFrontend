@@ -22,18 +22,11 @@ const Sucursal = {
     getSucursalFiltro() {
         const usuario = State.getUsuario();
         if (!usuario) return null;
-
-        // Doctor y asistente: siempre su sucursal asignada
-        if (usuario.rol !== 'administrador') {
-            return usuario.sucursalId ?? null;
-        }
-
-        // Admin: lo que tenga seleccionado en el selector (null = todas)
-        const select = document.getElementById('select-sucursal-global');
-        if (!select) return null;
-
-        const val = select.value;
-        return val === '' ? null : parseInt(val);
+        // Todos los usuarios (incluido el admin) operan sobre SU sucursal
+        // asignada. El selector global fue eliminado; el filtrado
+        // multi-sucursal vive ahora solo en el módulo de Reportes y en
+        // el filtro propio de cada componente (dashboard, calendario).
+        return usuario.sucursalId ?? null;
     },
 
     /// Nombre de la sucursal activa (para mostrar en pantalla)
@@ -45,45 +38,26 @@ const Sucursal = {
         return s?.nombre ?? `Sucursal ${id}`;
     },
 
-    /// Carga las sucursales desde la API y monta el selector en el navbar.
+    /// Carga las sucursales desde la API y muestra la sucursal del
+    /// usuario como texto estático en el navbar (sin selector).
     /// Llamar después del login exitoso.
     async inicializar() {
         const usuario = State.getUsuario();
         if (!usuario) return;
 
-        // Cargar catálogo de sucursales
+        // Cargar catálogo de sucursales (se usa en formularios)
         const res = await Api.get('/api/sucursales');
         _sucursales = res.ok ? (res.datos ?? []) : [];
 
         const container = document.getElementById('sucursal-selector-container');
         if (!container) return;
 
-        // Solo el admin ve el selector
-        if (usuario.rol !== 'administrador') {
-            // Mostrar solo el nombre de su sucursal
-            const nombre = _sucursales.find(s => s.id === usuario.sucursalId)?.nombre ?? '';
-            container.innerHTML = nombre
-                ? `<span class="text-xs text-muted" style="padding:0 var(--sp-2)">📍 ${nombre}</span>`
-                : '';
-            return;
-        }
-
-        // Admin: selector con opción "Todas"
-        const opciones = _sucursales.map(s =>
-            `<option value="${s.id}">${s.nombre}</option>`).join('');
-
-        container.innerHTML = `
-            <select id="select-sucursal-global" class="form-control"
-                style="width:auto;padding:var(--sp-1) var(--sp-3);font-size:var(--fs-xs);
-                       border-color:var(--color-border);height:32px">
-                <option value="">Todas las sucursales</option>
-                ${opciones}
-            </select>`;
-
-        // Al cambiar la sucursal, notificar a los módulos activos
-        document.getElementById('select-sucursal-global').addEventListener('change', () => {
-            window.dispatchEvent(new CustomEvent('sucursal-changed'));
-        });
+        // Todos los usuarios (incluido el admin) ven su sucursal asignada
+        // como texto fijo. Ya no hay selector global "Todas las sucursales".
+        const nombre = _sucursales.find(s => s.id === usuario.sucursalId)?.nombre ?? '';
+        container.innerHTML = nombre
+            ? `<span class="text-sm" style="padding:0 var(--sp-2);color:var(--color-text);font-weight:500">📍 ${nombre}</span>`
+            : '';
     },
 
     /// Lista de sucursales cargadas (para usar en formularios)

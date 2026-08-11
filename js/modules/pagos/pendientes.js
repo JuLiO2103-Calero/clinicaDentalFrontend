@@ -1,14 +1,25 @@
 // pagos/pendientes.js — Citas listas para cobrar (carga bajo demanda)
 
 import Api      from '../../core/api.js';
-import Sucursal from '../../core/sucursal.js';
+import State    from '../../core/state.js';
 import UI       from '../../utils/ui.js';
 import { abrirModal } from './modal-cobro.js';
 
 let _citasCache = [];  // cache local para filtrar sin volver al servidor
 
 export async function cargarPendientes() {
-    const suc = Sucursal.getSucursalFiltro();
+    // Pagos es un módulo OPERATIVO: cada usuario (incluido el admin) cobra
+    // solo en SU sucursal asignada. No se usa el filtro global de arriba,
+    // que sí aplica en el módulo de Reportes.
+    const suc = State.getUsuario()?.sucursalId ?? null;
+
+    if (!suc) {
+        _citasCache = [];
+        document.getElementById('citas-cobro-count').textContent = '0 cita(s)';
+        document.getElementById('citas-cobro').innerHTML =
+            '<div class="empty-state" style="padding:var(--sp-6)"><p class="text-muted">Tu usuario no tiene una sucursal asignada. Contacta al administrador para poder cobrar.</p></div>';
+        return;
+    }
 
     UI.showLoader();
     const res = await Api.get(Api.buildUrl('/api/citas', { sucursalId: suc }));
