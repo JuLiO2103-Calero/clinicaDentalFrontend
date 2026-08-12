@@ -6,7 +6,7 @@
 import Api from '../../core/api.js';
 import State from '../../core/state.js';
 import UI from '../../utils/ui.js';
-// Los servicios ahora vienen de la API (módulo de servicios editable por el admin)
+// Los servicios se cargan desde la API (módulo de servicios editable por el admin)
 let _servicios = [];
 let _todosUsuarios = [];
 let _cita = null;
@@ -18,7 +18,7 @@ export async function renderFormulario(container, citaId, fechaInicial = null) {
     const [resU, resSuc, resServ] = await Promise.all([
         Api.get('/api/usuarios/personal'),
         Api.get('/api/sucursales'),
-        Api.get('/api/servicios')   // solo activos por defecto
+        Api.get('/api/servicios')
     ]);
     _todosUsuarios = resU.ok ? resU.datos : [];
     _servicios = resServ.ok ? resServ.datos : [];
@@ -39,7 +39,12 @@ export async function renderFormulario(container, citaId, fechaInicial = null) {
     // (desde el calendario) la usa; si no, vacío.
     let fechaVal = '';
     if (_cita) {
-        fechaVal = new Date(_cita.fechaHora).toISOString().slice(0, 16);
+        // La fecha viene del backend en hora de Nicaragua. Formatearla para
+        // el input datetime-local SIN convertir a UTC (toISOString desfasaría
+        // la hora). Se arma el string local YYYY-MM-DDTHH:mm manualmente.
+        const d = new Date(_cita.fechaHora);
+        const p = n => String(n).padStart(2, '0');
+        fechaVal = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
     } else if (fechaInicial) {
         fechaVal = fechaInicial.slice(0, 16); // "2026-08-08T10:00"
     }

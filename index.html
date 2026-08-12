@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -16,8 +17,13 @@
 
     <style>
         /* Ocultar el layout de app mientras carga el router */
-        #app-shell { display: none; }
-        .menu-ajuste-item:hover { background: var(--color-bg); }
+        #app-shell {
+            display: none;
+        }
+
+        .menu-ajuste-item:hover {
+            background: var(--color-bg);
+        }
     </style>
     <script>
         // Aplicar el tema guardado ANTES de renderizar, para evitar parpadeo
@@ -27,6 +33,7 @@
         })();
     </script>
 </head>
+
 <body>
     <div id="app">
 
@@ -52,18 +59,24 @@
                         <button class="btn btn-ghost btn-sm" id="btn-ajustes" title="Ajustes" aria-haspopup="true">
                             ⚙️
                         </button>
-                        <div id="menu-ajustes" class="hidden" style="position:absolute;right:0;top:calc(100% + 6px);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow-lg);min-width:220px;z-index:1000;overflow:hidden">
-                            <div style="padding:var(--sp-2) var(--sp-3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--color-border)">
+                        <div id="menu-ajustes" class="hidden"
+                            style="position:absolute;right:0;top:calc(100% + 6px);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow-lg);min-width:220px;z-index:1000;overflow:hidden">
+                            <div
+                                style="padding:var(--sp-2) var(--sp-3);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--color-border)">
                                 <span style="font-size:var(--fs-sm)">🌙 Modo oscuro</span>
-                                <label class="switch" style="position:relative;display:inline-block;width:40px;height:22px">
+                                <label class="switch"
+                                    style="position:relative;display:inline-block;width:40px;height:22px">
                                     <input type="checkbox" id="toggle-tema" style="opacity:0;width:0;height:0" />
-                                    <span id="switch-slider" style="position:absolute;cursor:pointer;inset:0;background:var(--color-border-dark);border-radius:22px;transition:var(--transition)"></span>
+                                    <span id="switch-slider"
+                                        style="position:absolute;cursor:pointer;inset:0;background:var(--color-border-dark);border-radius:22px;transition:var(--transition)"></span>
                                 </label>
                             </div>
-                            <button class="menu-ajuste-item" id="btn-mi-password" style="width:100%;text-align:left;padding:var(--sp-2) var(--sp-3);background:none;border:none;cursor:pointer;font-size:var(--fs-sm);color:var(--color-text)">
+                            <button class="menu-ajuste-item" id="btn-mi-password"
+                                style="width:100%;text-align:left;padding:var(--sp-2) var(--sp-3);background:none;border:none;cursor:pointer;font-size:var(--fs-sm);color:var(--color-text)">
                                 🔑 Cambiar contraseña
                             </button>
-                            <button class="menu-ajuste-item" id="btn-mis-preguntas" style="width:100%;text-align:left;padding:var(--sp-2) var(--sp-3);background:none;border:none;cursor:pointer;font-size:var(--fs-sm);color:var(--color-text)">
+                            <button class="menu-ajuste-item" id="btn-mis-preguntas"
+                                style="width:100%;text-align:left;padding:var(--sp-2) var(--sp-3);background:none;border:none;cursor:pointer;font-size:var(--fs-sm);color:var(--color-text)">
                                 🛡️ Preguntas de seguridad
                             </button>
                         </div>
@@ -104,6 +117,9 @@
                 </button>
 
                 <div class="sidebar-section sidebar-admin-only" style="display:none">Administración</div>
+                <button class="sidebar-item sidebar-admin-only" data-route="#/servicios" style="display:none">
+                    <span class="sidebar-icon">🦷</span> Servicios
+                </button>
 
                 <button class="sidebar-item sidebar-admin-only" data-route="#/usuarios" style="display:none">
                     <span class="sidebar-icon">👥</span> Usuarios
@@ -135,24 +151,24 @@
 
     <!-- Punto de entrada JS (módulos ES6) -->
     <script type="module">
-        import State    from './js/core/state.js';
-        import Auth     from './js/core/auth.js';
-        import Router   from './js/core/router.js';
-        import UI       from './js/utils/ui.js';
+        import State from './js/core/state.js';
+        import Auth from './js/core/auth.js';
+        import Router from './js/core/router.js';
+        import UI from './js/utils/ui.js';
         import Sucursal from './js/core/sucursal.js';
-        import Mobile   from './js/core/mobile.js';
+        import Mobile from './js/core/mobile.js';
 
         // ---------- BOOTSTRAP ----------
         function actualizarLayout() {
-            const autenticado   = Auth.isAuthenticated();
-            const publicView    = document.getElementById('public-view');
-            const appShell      = document.getElementById('app-shell');
-            const viewPublico   = document.querySelector('#public-view #view');
-            const viewApp       = document.querySelector('#app-shell #view');
+            const autenticado = Auth.isAuthenticated();
+            const publicView = document.getElementById('public-view');
+            const appShell = document.getElementById('app-shell');
+            const viewPublico = document.querySelector('#public-view #view');
+            const viewApp = document.querySelector('#app-shell #view');
 
             if (autenticado) {
-                publicView.style.display  = 'none';
-                appShell.style.display    = 'grid';
+                publicView.style.display = 'none';
+                appShell.style.display = 'grid';
 
                 // Poblar navbar con datos del usuario
                 const u = State.getUsuario();
@@ -167,7 +183,7 @@
 
             } else {
                 publicView.style.display = 'block';
-                appShell.style.display   = 'none';
+                appShell.style.display = 'none';
             }
         }
 
@@ -250,4 +266,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </body>
+
 </html>
