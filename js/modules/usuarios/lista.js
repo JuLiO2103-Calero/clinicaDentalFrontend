@@ -3,7 +3,7 @@
 import Api from '../../core/api.js';
 import UI  from '../../utils/ui.js';
 
-export async function cargarLista(onEditar, onEstado, onDesbloquear) {
+export async function cargarLista(onEditar, onEstado, onDesbloquear, onReiniciarPassword) {
     UI.showLoader();
     const res = await Api.get('/api/usuarios');
     UI.hideLoader();
@@ -32,6 +32,7 @@ export async function cargarLista(onEditar, onEstado, onDesbloquear) {
                     <div style="display:flex;gap:2px">
                         <button class="btn btn-ghost btn-sm btn-edit-u" data-id="${u.id}" title="Editar">✏️</button>
                         ${u.bloqueado ? `<button class="btn btn-ghost btn-sm btn-unlock-u" data-id="${u.id}" title="Desbloquear">🔓</button>` : ''}
+                        ${u.bloqueado && !u.tienePreguntasSeguridad ? `<button class="btn btn-ghost btn-sm btn-reset-pass-u" data-id="${u.id}" data-nombre="${u.nombreUsuario}" title="Reiniciar contraseña (no configuró preguntas de seguridad)">🔑</button>` : ''}
                         <button class="btn btn-ghost btn-sm btn-estado-u" data-id="${u.id}" data-activo="${u.activo}" title="${u.activo ? 'Desactivar' : 'Activar'}">${u.activo ? '🚫' : '✅'}</button>
                     </div>
                 </td>
@@ -39,6 +40,7 @@ export async function cargarLista(onEditar, onEstado, onDesbloquear) {
 
     container.querySelectorAll('.btn-edit-u').forEach(b => b.addEventListener('click', () => onEditar(parseInt(b.dataset.id))));
     container.querySelectorAll('.btn-unlock-u').forEach(b => b.addEventListener('click', () => onDesbloquear(parseInt(b.dataset.id))));
+    container.querySelectorAll('.btn-reset-pass-u').forEach(b => b.addEventListener('click', () => onReiniciarPassword(parseInt(b.dataset.id), b.dataset.nombre)));
     container.querySelectorAll('.btn-estado-u').forEach(b => b.addEventListener('click', () => onEstado(parseInt(b.dataset.id), b.dataset.activo === 'true')));
 }
 

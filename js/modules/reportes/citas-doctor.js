@@ -2,7 +2,7 @@
 // Se abre desde el reporte de citas al hacer clic en un doctor.
 
 import Api from '../../core/api.js';
-import UI  from '../../utils/ui.js';
+import UI from '../../utils/ui.js';
 import { descargarExcel, descargarPDF } from './exportar.js';
 
 let _citas = [];
@@ -59,16 +59,18 @@ function _pintar() {
         <div class="table-wrapper"><table class="table"><thead><tr>
             <th>Cita ID</th><th>Fecha y hora</th><th>Paciente</th><th>Servicio</th>
             <th>Estado</th><th>Duración</th><th>Sucursal</th><th>Motivo</th><th>Pagado</th>
-        </tr></thead><tbody>${_citas.map(c => `<tr>
-            <td class="font-semibold">#${c.id}</td>
-            <td style="white-space:nowrap">${UI.fechaHora(c.fechaHora)}</td>
-            <td>${c.paciente}</td>
-            <td>${c.servicio ?? '—'}</td>
-            <td>${UI.badge(c.estado)}</td>
-            <td>${c.duracionMin} min</td>
-            <td>${c.sucursal ?? '—'}</td>
-            <td class="text-sm">${c.motivo ?? '—'}</td>
-            <td>${c.pagado ? '✅' : '—'}</td>
+        </tr></thead>
+            <tbody>
+                ${_citas.map(c => `<tr>
+                <td class="font-semibold">#${c.id}</td>
+                <td style="white-space:nowrap">${UI.fechaHora(c.fechaHora)}</td>
+                <td>${c.paciente}</td>
+                <td>${c.servicio ?? '—'}</td>
+                <td>${UI.badge(c.estado)}</td>
+                <td>${c.duracionMin} min</td>
+                <td>${c.sucursal ?? '—'}</td>
+                <td class="text-sm">${c.motivo ?? '—'}</td>
+                <td>${c.pagado ? '✅' : '—'}</td>
         </tr>`).join('')}</tbody></table></div>`;
 
     document.getElementById('cd-excel').addEventListener('click', _exportarExcel);
